@@ -1,0 +1,153 @@
+#41915004 권혁민 핑퐁 게임 만들기
+import pygame
+import random
+import sys
+import time
+
+# 게임 초기화
+pygame.init()
+
+# 게임 화면 크기 설정
+screen_width = 640
+screen_height = 480
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("1인 핑퐁 게임")
+
+# 색상 설정
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+SKY_BLUE = (135, 206, 235)
+
+# 패들 크기와 속도 설정
+paddle_width = 80
+paddle_height = 10
+paddle_speed = 5
+
+# 공 크기와 속도 설정
+ball_size = 20
+ball_speed_x = 3
+ball_speed_y = 3
+
+# 패들 생성
+paddle = pygame.Rect(screen_width // 2 - paddle_width // 2, screen_height - paddle_height - 10, paddle_width, paddle_height)
+
+# 공 생성
+ball = pygame.Rect(screen_width // 2 - ball_size // 2, screen_height // 2 - ball_size // 2, ball_size, ball_size)
+ball_direction = random.choice([-1, 1])
+
+# 게임 루프
+running = False
+game_over = False
+score = 0
+life = 3
+clock = pygame.time.Clock()
+
+def start_game():
+    global running, game_over, score, life
+    ball.center = (screen_width // 2, screen_height // 2)
+    ball_direction = random.choice([-1, 1])
+    running = True
+    game_over = False
+    score = 0
+    life = 3
+
+def decrease_life():
+    global ball_speed_x, ball_speed_y
+    ball_speed_x += 3
+    ball_speed_y += 3
+
+def game_over_screen():
+    screen.fill(BLACK)
+    game_over_font = pygame.font.Font(None, int(screen_height / 4))
+    game_over_text = game_over_font.render("GAME OVER", True, WHITE)
+    game_over_text_rect = game_over_text.get_rect(center=(screen_width // 2, screen_height // 2))
+
+    score_text = font.render("Score: " + str(score), True, WHITE)
+    score_text_rect = score_text.get_rect(center=(screen_width // 2, screen_height // 2 + 100))
+
+    screen.blit(game_over_text, game_over_text_rect)
+    screen.blit(score_text, score_text_rect)
+    pygame.display.flip()
+
+    time.sleep(3)
+    pygame.quit()
+    sys.exit()
+
+def draw_game():
+    screen.fill(BLACK)
+    pygame.draw.rect(screen, WHITE, paddle)
+    pygame.draw.ellipse(screen, WHITE, ball)
+    score_text = font.render("Score: " + str(score), True, WHITE)
+    life_text = font.render("Life: " + str(life), True, WHITE)
+
+    screen.blit(score_text, (10, 10))
+    screen.blit(life_text, (10, 30))
+    pygame.display.flip()
+
+start_font = pygame.font.Font(None, int(screen_height / 6))
+start_text = start_font.render("Ping Pong", True, WHITE)
+start_text_rect = start_text.get_rect(center=(screen_width // 2, screen_height // 2))
+
+start_button_font = pygame.font.Font(None, 80)
+start_button_text = start_button_font.render("Start", True, WHITE)
+start_button_rect = start_button_text.get_rect(center=(screen_width // 2, screen_height * 3 // 4))
+
+font = pygame.font.Font(None, 36)
+
+screen.fill(BLACK)
+screen.blit(start_text, start_text_rect)
+pygame.draw.rect(screen, SKY_BLUE, start_button_rect)
+screen.blit(start_button_text, start_button_rect)
+pygame.display.flip()
+
+while not running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            if start_button_rect.collidepoint(mouse_pos):
+                start_game()
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and paddle.x > 0:
+        paddle.x -= paddle_speed
+    if keys[pygame.K_RIGHT] and paddle.x < screen_width - paddle_width:
+        paddle.x += paddle_speed
+
+    ball.x += ball_speed_x * ball_direction
+    ball.y += ball_speed_y
+
+    if ball.x <= 0 or ball.x >= screen_width - ball_size:
+        ball_direction *= -1
+
+    if ball.y <= 0:
+        ball_speed_y *= -1
+
+    if ball.colliderect(paddle):
+        ball_speed_y *= -1
+        score += 1
+
+    if ball.y >= screen_height:
+        life -= 1
+        if life == 0:
+            decrease_life()
+            running = False
+            game_over = True
+        else:
+            decrease_life()  # decrease_life() 함수를 이 위치로 이동
+            ball.center = (screen_width // 2, screen_height // 2)
+            ball_speed_y *= -1
+            time.sleep(1)
+
+    draw_game()
+    clock.tick(60)
+
+game_over_screen()
